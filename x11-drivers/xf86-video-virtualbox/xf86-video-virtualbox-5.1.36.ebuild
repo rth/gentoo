@@ -80,6 +80,14 @@ src_prepare() {
 	# link with lazy on hardened #394757
 	sed '/^TEMPLATE_VBOXR3EXE_LDFLAGS.linux/s/$/ -Wl,-z,lazy/' \
 		-i Config.kmk || die
+
+	# fix sigset.h include issue #638548
+	# could be made more generic if depth exceeds three files below
+	local each targets=(edid.c pointer.c vboxvideo.h)
+	for each in ${targets[@]}; do
+	sed -i -e 's/#include <bits\/sigset.h>/#include <bits\/types\/__sigset_t.h>/g' \
+		"${WORKDIR}/VirtualBox-${PVR}/src/VBox/Additions/x11/vboxvideo/${each}" || die
+	done
 }
 
 src_configure() {
